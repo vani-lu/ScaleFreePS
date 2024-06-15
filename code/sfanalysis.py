@@ -24,7 +24,7 @@ def buildGMLcatalog(gml_dir):
 
     """
     df = pd.DataFrame(columns=['fp_gml', 'Weighted', 'Directed', 'Bipartite',
-                               'Multigraph', 'Multiplex'])
+                               'Multigraph', 'Multiplex'], dtype='object')
     # make list of file paths to gmls
     fpV = []
     for root, dirs, files in os.walk(gml_dir):
@@ -38,13 +38,13 @@ def buildGMLcatalog(gml_dir):
         splitfp = fp.split('/')
         name = splitfp[-1]
         # add new row or overwrite existing row
-        df.loc[name] = np.nan
-        df.loc[name]['fp_gml'] = fp
-        df.loc[name]['Weighted'] = sg.weighted(g, fp)
-        df.loc[name]['Directed'] = sg.directed(g)
-        df.loc[name]['Bipartite'] = sg.bipartite(g, fp)
-        df.loc[name]['Multigraph'] = sg.multigraph(g)
-        df.loc[name]['Multiplex'] = sg.multiplex(g)
+        #df.loc[name] = np.nan
+        df.loc[name] = dict(fp_gml=fp,
+                            Weighted=sg.weighted(g, fp),
+                            Directed=sg.directed(g),
+                            Bipartite=sg.bipartite(g, fp),
+                            Multigraph=sg.multigraph(g),
+                            Multiplex=sg.multiplex(g))
         if (df.loc[name] == 'error').any():
             # this catches bad bipartite gmls
             df = df.drop(name)
@@ -122,13 +122,13 @@ def readdeg(g, fp, degdir, analysis, namekey='', bipkey=0, weighkey=0, dirkey=0,
     elif dirkey == 'out':
         deg = g.outdegree()
     else:
-        print 'something is wrong with your dirkey'
+        print('something is wrong with your dirkey')
     # get file name
     splitfp = fp.split('/')
     if len(splitfp)>1:
-        domain = splitfp[-4]
-        subdomain = splitfp[-3]
-        gsize = int(splitfp[-2][1:]) # cut out the 'n'
+        domain = splitfp[-2]
+        subdomain = 'na'
+        gsize = 'na'
         gmlname = splitfp[-1]
     else:
         domain = 'na'
@@ -142,7 +142,7 @@ def readdeg(g, fp, degdir, analysis, namekey='', bipkey=0, weighkey=0, dirkey=0,
         errormessage = "%s is too dense \n" %fn
         print(errormessage)
         writeerror_deg(errormessage, 'big')
-    # check if mean degree is too small and don't write to file if so
+    # [CHANGE] check if mean degree is too small and don't write to file if so
     elif meandeg < 2:
         errormessage = "%s mean degree is too small \n" %fn
         print(errormessage)
@@ -335,7 +335,7 @@ def processbipartite(g, fp, degdir, analysis, namekey='', mpkey=0):
     uniquetypes = np.unique(types)
     types[types==uniquetypes[0]] = 0
     types[types==uniquetypes[1]] = 1
-    print fp
+    print(fp)
     types = np.asarray([int(t) for t in types])
     g.vs['type'] = types
 
@@ -443,6 +443,7 @@ def write_degree_sequences(gml_dir, deg_dir):
                                          'Lpl', 'ppl', 'dexp', 'dln', 'dstrexp',
                                          'dplwc', 'meandeg'])
     for fp in fpV:
+        print(fp)
         g = igraph.read(fp)
         #### find what kind of graph this is (follow hierarchical ordering of types)
         # check first for multiplex
@@ -498,6 +499,7 @@ def writeerror_lrt(errormessage):
 
 
 def analyze_degree_sequences(deg_dir, analysis):
+    overwrite = False
     for fn in analysis.index:
         fp = deg_dir + fn
         x = im.readdata(fp)

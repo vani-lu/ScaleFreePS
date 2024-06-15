@@ -176,10 +176,10 @@ def plpval(x, alpha, xmin, gof):
         if time.time() - starttime > 500:
             if resamp_ind > num_resamps/20.:
                 if current_p<0.05 or current_p>0.5:
-                    print "current p = %s   elapsed time = %s" %(current_p, time.time()-starttime)
+                    print("current p = %s   elapsed time = %s" %(current_p, time.time()-starttime))
                     return current_p
     p = np.sum(bootstraps>=gof)/float(num_resamps)
-    print "p = %.3f   elapsed time = %s" %(p, time.time()-starttime)
+    print("p = %.3f   elapsed time = %s" %(p, time.time()-starttime))
     return p
 
 def exp(x):
@@ -214,7 +214,7 @@ def exp(x):
         negloglike = lambda lam: -np.sum(logpdf(x,lam))
         tol = 1E-9
         res = op.minimize(negloglike,lam0, bounds=[(tol,None)],method='L-BFGS-B')
-        lam = np.asscalar(res.x)
+        lam = res.x.item()
         convstatus = res.success
         LV = logpdf(x,lam)
     return [lam, LV, convstatus]
@@ -243,7 +243,7 @@ def ln(x):
         xmin = np.min(x)
         F = lambda x: (sp.erfc((np.log(x)-mu)/(np.sqrt(2)*sigma)))/2
         g = lambda x: F(x)- F(x+1)
-        h = -np.log(F(xmin))+np.log(g(x))
+        h = -np.log(F(xmin) + 1e-16)+np.log(g(x) + 1e-16) #[CHANGE] Add a small number to avoid log(0)
         return h
     # initial estimates
     mu0 = 0
