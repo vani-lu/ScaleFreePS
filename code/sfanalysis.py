@@ -145,7 +145,7 @@ def readdeg(g, fp, degdir, analysis, namekey='', bipkey=0, weighkey=0, dirkey=0,
     # [CHANGE] check if mean degree is too small and don't write to file if so
     elif meandeg < 2:
         errormessage = "%s mean degree is too small \n" %fn
-        print(errormessage)
+        print(meandeg, errormessage)
         writeerror_deg(errormessage, 'small')
     else:
         # write degree sequence file. Each row is xvalue,count

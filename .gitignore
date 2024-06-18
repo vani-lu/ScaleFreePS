@@ -12,3 +12,5 @@ local/
 pando/
 analysis/
 *error*
+
+*.gml
